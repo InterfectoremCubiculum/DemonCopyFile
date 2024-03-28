@@ -1,4 +1,4 @@
-Podział pracy:
+**Podział pracy:**
 - Eryk Ś:
 1. sprawdza parametry
 2. kopiowanie plików(narazie bez rekurencji i data nie jest datą modyfikacji)

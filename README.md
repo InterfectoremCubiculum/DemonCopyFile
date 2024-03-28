@@ -1,6 +1,6 @@
 Podział pracy:
 - Eryk Ś:
-  1) sprawdza parametry
+  2) sprawdza parametry
   2) kopiowanie plików(narazie bez rekurencji i data nie jest datą modyfikacji)
   3) sprawdzanie tego czy podany parametr to katalog
   4) usuwanie plików

@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <sys/mman.h>
-
+#include <utime.h>
 #define SMALL_FILE_SIZE 1024*1024
 #define STANDARD_SLEEP_TIME 300
 
@@ -213,7 +213,11 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
 			//Jeżeli plik nie istnieje lub jest starszy dokonaj jego kopiowania
 			if (stat(dstFile, &dstStats) == -1 || srcStats.st_mtime > dstStats.st_mtime) 
 			{
-				CopyFile(srcFile, dstFile);
+				CopyFile(srcFile, dstFile); 
+
+				struct utimbuf time; //Zmieniamy czas modyfikacji pliku przy użyciu funkcji utime
+				time.modtime = srcStats.st_mtime;
+				utime(dstFile ,&time);
 			}
 		}
 		free(dstFile);

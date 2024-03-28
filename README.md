@@ -9,6 +9,7 @@
 1. realizacja sleepa
 2. obsługa sygnałów (wybudzenie, uruchomienie i uśpienie)
 3. logowanie informacji o demononie
+4. Podział na oddzielne pliki wykonawcze
      
 -  Michał K.
 1.  Zapisywanie i obsługa katalogów

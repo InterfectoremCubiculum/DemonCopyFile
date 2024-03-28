@@ -82,16 +82,16 @@ void Init(int argc,char* argv[])
 				{}
 				else
 				{
-					if(strcmp(argv[3],"-R") == 0) //Wykonuje opcje -R ale z zmienionym czasie
-					{	
-						SynchroniseDirectories(argv[1], argv[2], 1);	
-					}
+					if(strcmp(argv[3],"-R") == 0) 
+					{}
 					else
 					{
 						WriteErrorAtributes(argv[0]);
 					}
 					if(ChangeSize(argv[4])) 
-					{}	
+					{
+						SynchroniseDirectories(argv[1], argv[2], 1);	
+					}	
 					else
 					{
 						WriteErrorAtributes(argv[0]);
@@ -115,15 +115,15 @@ void Init(int argc,char* argv[])
 					WriteErrorAtributes(argv[0]);
 				}
 				if(strcmp(argv[4],"-R") == 0) //Wykonuje opcje -R ale z zmienionym czasie
-				{	
-					SynchroniseDirectories(argv[1], argv[2], 1);	
-				}
+				{}
 				else
 				{
 					WriteErrorAtributes(argv[0]);
 				}
 				if(ChangeSize(argv[5]))
-				{}
+				{
+					SynchroniseDirectories(argv[1], argv[2], 1);	
+				}
 				else
 				{
 					WriteErrorAtributes(argv[0]);
@@ -188,7 +188,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
         	}
 
         	
-            	//Tworzenie scieżek do plików źródłowych i docelowych
+        //Tworzenie scieżek do plików źródłowych i docelowych
 		char* srcFile = malloc((strlen(sourceDir)+strlen(checkAll->d_name)+2)*sizeof(char));
 		strcpy(srcFile, sourceDir);
 		strcat(srcFile, "/");

@@ -10,8 +10,8 @@ Podział pracy:
   2) obsługa sygnałów (wybudzenie, uruchomienie i uśpienie)
   3) logowanie informacji o demononie
      
-  -  Michał K.
+-  Michał K.
   1) Zapisywanie i obsługa katalogów
  
-  -  Norbert K.
+-  Norbert K.
   1) Dokumentacja

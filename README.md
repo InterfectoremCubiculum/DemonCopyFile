@@ -6,9 +6,9 @@ Podział pracy:
 4. usuwanie plików
 
 - Mateusz I.
-  1. realizacja sleepa
-  2. obsługa sygnałów (wybudzenie, uruchomienie i uśpienie)
-  3. logowanie informacji o demononie
+1. realizacja sleepa
+2. obsługa sygnałów (wybudzenie, uruchomienie i uśpienie)
+3. logowanie informacji o demononie
      
 -  Michał K.
 1.  Zapisywanie i obsługa katalogów

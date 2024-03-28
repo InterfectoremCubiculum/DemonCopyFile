@@ -210,7 +210,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
 		//Jeżeli plik nie istnieje w katalogu źródłowym to go usuń
 		if (access(srcFile, F_OK) == -1) 
 		{
-			unlink(srcFile);
+			unlink(dstFile);
 		}
 		
 		free(dstFile);

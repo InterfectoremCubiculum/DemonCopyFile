@@ -17,20 +17,17 @@ void CopyFile(const char* srcFile, const char* dstFile); //Kopiuje pliki
 void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, int isRecursive); // Synchronizuje katalogii
 int ChangeTime(const char* input); //Sprawdza czy talbica char jest liczbą
 int IsDirectoryExists(const char *path); //Sprawdza czy path odnosi się do katalogu
-
+void WriteErrorAtributes(const char *programName); // Wypisuje błąd z parametrami
+int ChangeSize(const char* input); //Sprawdza czy talbica char jest liczbą
 int sleepTime;
-
+int sizeFile;
 int main(int argc, char* argv[])
 {
 	sleepTime = STANDARD_SLEEP_TIME;
+	sizeFile = SMALL_FILE_SIZE;
 	Init(argc, argv);
 	
-	/*
-	TODO Trzeba z tego zrobić faktycznego demona 
-	TODO Budzenie przez sygnał
-	TODO Rekurencja
-	TODO Syslog
-	*/
+
 	/*while(1)
 	{
 		sleep(sleepTime);
@@ -44,7 +41,7 @@ int main(int argc, char* argv[])
 //Inicjalizuje demona
 void Init(int argc,char* argv[])
 {
-	if(argc >= 3 && argc <= 5) //Sprawdzanie liczby parametrów
+	if(argc >= 3 && argc <= 6) //Sprawdzanie liczby parametrów
 	{
 		char* sourceDir = argv[1];
 		char* destinationDir = argv[2];
@@ -58,10 +55,13 @@ void Init(int argc,char* argv[])
 
 		switch(argc) //Sprawdza poprawność podanych parametrów
 		{
+			// <src_dir> <dest_dir> 
 			case 3:
 				SynchroniseDirectories(argv[1], argv[2], 0);
 				break;
-			case 4:
+			// <src_dir> <dest_dir> [sleepTime] 
+			// <src_dir> <dest_dir> [-R]
+			case 4: 
 				if(ChangeTime(argv[3])) //Wykonaj podstawowe zadanie z zmienionym czasie
 				{
 					SynchroniseDirectories(argv[1], argv[2], 0);
@@ -72,28 +72,62 @@ void Init(int argc,char* argv[])
 				}
 				else
 				{
-					printf("Błąd w parametrach: %s <src_dir> <dest_dir> [sleepTime] [-R]\n", argv[0]);
-					exit(EXIT_FAILURE);
+					WriteErrorAtributes(argv[0]);
 				}
 				break;
-			case 5:
+			// <src_dir> <dest_dir> [sleepTime] [-R]
+			// <src_dir> <dest_dir> [-R] [sizeFile]
+			case 5: 
 				if(ChangeTime(argv[3]))
 				{}
 				else
 				{
-					printf("Błąd w parametrach: %s <src_dir> <dest_dir> [sleepTime] [-R]\n", argv[0]);
-					exit(EXIT_FAILURE);
+					if(strcmp(argv[3],"-R") == 0) //Wykonuje opcje -R ale z zmienionym czasie
+					{	
+						SynchroniseDirectories(argv[1], argv[2], 1);	
+					}
+					else
+					{
+						WriteErrorAtributes(argv[0]);
+					}
+					if(ChangeSize(argv[4])) 
+					{}	
+					else
+					{
+						WriteErrorAtributes(argv[0]);
+					}
+				}
+				if(strcmp(argv[4],"-R") == 0) //Wykonuje opcje -R ale z zmienionym czasie
+				{	
+						SynchroniseDirectories(argv[1], argv[2], 1);	
+				}	
+				else
+				{
+					WriteErrorAtributes(argv[0]);
+				}
+				break;
+			// <src_dir> <dest_dir> [sleepTime] [-R] [sizeFile]
+			case 6:
+				if(ChangeTime(argv[3]))
+				{}
+				else
+				{
+					WriteErrorAtributes(argv[0]);
 				}
 				if(strcmp(argv[4],"-R") == 0) //Wykonuje opcje -R ale z zmienionym czasie
 				{	
 					SynchroniseDirectories(argv[1], argv[2], 1);	
-				}	
+				}
 				else
 				{
-					printf("Błąd w parametrach: %s <src_dir> <dest_dir> [sleepTime] [-R]\n", argv[0]);
-					exit(EXIT_FAILURE);
+					WriteErrorAtributes(argv[0]);
 				}
-				break;
+				if(ChangeSize(argv[5]))
+				{}
+				else
+				{
+					WriteErrorAtributes(argv[0]);
+				}
 			default:
 				break;
 		}
@@ -112,12 +146,12 @@ void CopyFile(const char* srcFile, const char* dstFile)
 	struct stat stats; //Przechowuje informacje o pliku
 	fstat(fileToRead, &stats);
 	
-	if(stats.st_size <= SMALL_FILE_SIZE) //Kopiowanie dla małych plików
+	if(stats.st_size <= sizeFile) //Kopiowanie dla małych plików
 	{
 	
 		//Wczytywanie
-		char buf[SMALL_FILE_SIZE];
-		int bytesNumber = read(fileToRead, buf, SMALL_FILE_SIZE);
+		char buf[sizeFile];
+		int bytesNumber = read(fileToRead, buf, sizeFile);
 		
 		//Zapisywanie
 		int fileToSave = open(dstFile, O_WRONLY | O_CREAT | O_TRUNC, stats.st_mode);
@@ -210,11 +244,14 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
 		//Jeżeli plik nie istnieje w katalogu źródłowym to go usuń
 		if (access(srcFile, F_OK) == -1) 
 		{
+
+			printf("%s",srcFile);
 			unlink(dstFile);
+			perror("unlink");
 		}
-		
-		free(dstFile);
 		free(srcFile);
+		free(dstFile);
+
     	}
     	closedir(dstDIR);
 }
@@ -232,11 +269,29 @@ int ChangeTime(const char* input)
 	sleepTime = atoi(input);
 	return 1;
 }
-
+int ChangeSize(const char* input)
+{
+	for(int i=0; i < strlen(input); i++)
+	{
+		if(!isdigit(input[i]))
+		{
+			return 0;
+		}
+	}
+	sizeFile = atoi(input);
+	return 1;
+}
 //Sprawdza czy path odnosi się do katalogu
-int IsDirectoryExists(const char *path) {
+int IsDirectoryExists(const char *path) 
+{
 	struct stat s;
 	if (stat(path, &s) == -1 || !S_ISDIR(s.st_mode)) 
 		return 1;
 	return 0;
+}
+
+void WriteErrorAtributes(const char *programName)
+{
+	printf("Błąd w parametrach: %s <src_dir> <dest_dir> [sleepTime] [-R] [sizeFile]\n", programName);
+	exit(EXIT_FAILURE);
 }

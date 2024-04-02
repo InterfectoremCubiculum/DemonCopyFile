@@ -12,7 +12,7 @@
 - [ ] Podział na oddzielne pliki wykonawcze
      
 -  Michał K.
-- [ ]  Zapisywanie i obsługa katalogów
+- [ ]  Zapisywanie i obsługa katalogów (zaglądanie rekurencyjne)
  
 -  Norbert K.
 - [ ] Dokumentacja

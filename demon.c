@@ -26,6 +26,8 @@ void WriteErrorAtributes(const char *programName);
 void SignalHandler(int sig);
 void AlarmHandler(int sig);
 
+extern void writeToLog(const char* format); 
+
 char* sourceDir;
 char* destinationDir;
 

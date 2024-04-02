@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
+// Obsługa sygnału SIGALRM
 void AlarmHandler(int sig) {
     if (sig == SIGALRM) {
         // Wyślij sygnał SIGUSR1
@@ -55,7 +55,7 @@ void AlarmHandler(int sig) {
     alarm(STANDARD_SLEEP_TIME);
  }
 }
-
+// Obsługa sygnału SIGUSR1
 void SignalHandler(int sig) {
     if (sig == SIGUSR1) {
         // Wykonaj synchronizację
@@ -63,7 +63,7 @@ void SignalHandler(int sig) {
 	printf("Synchronizacja zakonczona.\n");
     }
 }
-
+// Inicjalizacja programu
 void Init(int argc, char* argv[]) {
     if (argc >= 3 && argc <= 6) {
         sourceDir = argv[1];
@@ -128,7 +128,7 @@ void Init(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 }
-
+// Funkcja kopiująca plik
 void CopyFile(const char* srcFile, const char* dstFile) {
     int fileToRead = open(srcFile, O_RDONLY);
     struct stat stats;
@@ -149,7 +149,7 @@ void CopyFile(const char* srcFile, const char* dstFile) {
     }
     close(fileToRead);
 }
-
+// Synchronizacja katalogów
 void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, int isRecursive) {
     DIR *srcDIR = opendir(sourceDir);
     struct dirent *checkAll;
@@ -172,7 +172,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
         stat(srcFile, &srcStats);
         
         if (S_ISDIR(srcStats.st_mode) && isRecursive == 1) {
-            // Implementuj rekurencję -R
+            // Implementuj rekurencję -R tutaj robota dla Michała
         } else if (S_ISREG(srcStats.st_mode)) {
             if (stat(dstFile, &dstStats) == -1 || srcStats.st_mtime > dstStats.st_mtime) {
                 CopyFile(srcFile, dstFile); 
@@ -228,7 +228,7 @@ int ChangeSize(const char* input) {
     }
     return 0;
 }
-
+// Sprawdź, czy katalog istnieje
 int IsDirectoryExists(const char *path) {
     struct stat s;
     if (stat(path, &s) == -1 || !S_ISDIR(s.st_mode)) {
@@ -236,7 +236,7 @@ int IsDirectoryExists(const char *path) {
     }
     return 0;
 }
-
+// Wyświetl komunikat o błędzie w parametrach
 void WriteErrorAtributes(const char *programName) {
     printf("Błąd w parametrach: %s <src_dir> <dest_dir> [sleepTime] [-R] [sizeFile]\n", programName);
     exit(EXIT_FAILURE);

@@ -8,7 +8,7 @@
 - Mateusz I.
 - [x] realizacja sleepa 
 - [x] obsługa sygnałów (wybudzenie, uruchomienie i uśpienie) 
-- [ ] logowanie informacji o demononie
+- [x] logowanie informacji o demononie
 - [ ] Podział na oddzielne pliki wykonawcze
      
 -  Michał K.

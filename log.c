@@ -2,7 +2,7 @@
 #include <time.h>
 
 void writeToLog(const char* message) {
-    FILE* logFile = fopen("daemon_log.txt", "a");
+    FILE* logFile = fopen("demon_log.txt", "a");
     if (logFile == NULL) {
         perror("Błąd podczas otwierania pliku dziennika");
         return;

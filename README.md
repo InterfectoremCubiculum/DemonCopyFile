@@ -10,7 +10,7 @@
 - [x] obsługa sygnałów (wybudzenie, uruchomienie i uśpienie) 
 - [x] logowanie informacji o demononie
 - [x] Podział na oddzielne pliki wykonawcze
-- [ ] praca w tle (zamiast pracy przy uruchomionym procesie)
+- [x] praca w tle (zamiast pracy przy uruchomionym procesie)
      
 -  Michał K.
 - [ ]  Zapisywanie i obsługa katalogów (zaglądanie rekurencyjne)

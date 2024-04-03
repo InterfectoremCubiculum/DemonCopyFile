@@ -14,7 +14,7 @@
 #define SIGALRM 14
 #define SIGUSR1 10
 #define SMALL_FILE_SIZE 1024*1024
-#define STANDARD_SLEEP_TIME 5//300 do testow na razie co 5 sekund zamiast 5 minut
+#define STANDARD_SLEEP_TIME 10//300 do testow na razie co 5 sekund zamiast 5 minut
 
 void Init(int argc, char* argv[]);
 void CopyFile(const char* srcFile, const char* dstFile);
@@ -25,14 +25,12 @@ int IsDirectoryExists(const char *path);
 void WriteErrorAtributes(const char *programName);
 void SignalHandler(int sig);
 void AlarmHandler(int sig);
-
 extern void writeToLog(const char* format); 
-
 char* sourceDir;
 char* destinationDir;
-
 int main(int argc, char* argv[])
 {
+    writeToLog("Demon Kopiujący Pliki został uruchomiony.\n");
     printf("Demon Kopiujący Pliki został uruchomiony.\n");
     // Ustawienie obsługi sygnałów
     signal(SIGALRM, AlarmHandler);
@@ -48,24 +46,26 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-// Obsługa sygnału SIGALRM
+
 void AlarmHandler(int sig) {
     if (sig == SIGALRM) {
         // Wyślij sygnał SIGUSR1
         pid_t pid = getpid();
         kill(pid, SIGUSR1);
     alarm(STANDARD_SLEEP_TIME);
+	writeToLog("Wysłano sygnał SIGUSR1.");
  }
 }
-// Obsługa sygnału SIGUSR1
+
 void SignalHandler(int sig) {
     if (sig == SIGUSR1) {
         // Wykonaj synchronizację
+        writeToLog("Rozpoczęto synchronizację katalogów.");
         SynchroniseDirectories(sourceDir, destinationDir, 0);
-	printf("Synchronizacja zakonczona.\n");
+	writeToLog("Zakończono synchronizację katalogów.");
     }
 }
-// Inicjalizacja programu
+
 void Init(int argc, char* argv[]) {
     if (argc >= 3 && argc <= 6) {
         sourceDir = argv[1];
@@ -130,7 +130,7 @@ void Init(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 }
-// Funkcja kopiująca plik
+
 void CopyFile(const char* srcFile, const char* dstFile) {
     int fileToRead = open(srcFile, O_RDONLY);
     struct stat stats;
@@ -151,7 +151,7 @@ void CopyFile(const char* srcFile, const char* dstFile) {
     }
     close(fileToRead);
 }
-// Synchronizacja katalogów
+
 void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, int isRecursive) {
     DIR *srcDIR = opendir(sourceDir);
     struct dirent *checkAll;
@@ -170,24 +170,29 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
         strcat(dstFile, "/");
         strcat(dstFile, checkAll->d_name);
 
+
         struct stat srcStats, dstStats;
         stat(srcFile, &srcStats);
         
         if (S_ISDIR(srcStats.st_mode) && isRecursive == 1) {
-            // Implementuj rekurencję -R tutaj robota dla Michała
+            // Implement recursion -R dla Michala
         } else if (S_ISREG(srcStats.st_mode)) {
-            if (stat(dstFile, &dstStats) == -1 || srcStats.st_mtime > dstStats.st_mtime) {
-                CopyFile(srcFile, dstFile); 
-                struct utimbuf time;
-                time.modtime = srcStats.st_mtime;
-                utime(dstFile ,&time);
-            }
+	if (stat(dstFile, &dstStats) == -1 || srcStats.st_mtime > dstStats.st_mtime) {
+    // Wykonuj tylko wtedy, gdy plik źródłowy jest nowszy niż plik docelowy
+    CopyFile(srcFile, dstFile); 
+    struct utimbuf time;
+    time.modtime = srcStats.st_mtime;
+    utime(dstFile ,&time);
+    // Dodanie informacji do logu
+    char logMsg[512];
+    snprintf(logMsg, sizeof(logMsg), "Skopiowano plik %s do %s\n", srcFile, dstFile);
+    writeToLog(logMsg);
+}
        }
         free(dstFile);
         free(srcFile);
     }
     closedir(srcDIR);
-    
     DIR *dstDIR = opendir(destinationDir);
     while ((checkAll = readdir(dstDIR)) != NULL) {
         if (strcmp(checkAll->d_name, ".") == 0 || strcmp(checkAll->d_name, "..") == 0) {
@@ -230,7 +235,7 @@ int ChangeSize(const char* input) {
     }
     return 0;
 }
-// Sprawdź, czy katalog istnieje
+
 int IsDirectoryExists(const char *path) {
     struct stat s;
     if (stat(path, &s) == -1 || !S_ISDIR(s.st_mode)) {
@@ -238,8 +243,9 @@ int IsDirectoryExists(const char *path) {
     }
     return 0;
 }
-// Wyświetl komunikat o błędzie w parametrach
+
 void WriteErrorAtributes(const char *programName) {
     printf("Błąd w parametrach: %s <src_dir> <dest_dir> [sleepTime] [-R] [sizeFile]\n", programName);
     exit(EXIT_FAILURE);
 }
+

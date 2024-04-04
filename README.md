@@ -17,3 +17,9 @@
  
 -  Norbert K.
 - [ ] Dokumentacja
+
+
+Przydatne komendy:
+- gcc -o demon demon1.c log.c      (kompilacja demona)
+- ./demon kat1 kat2 &              (uruchomienie demona z tle)
+- pkill demon                      (zakończenie pracy demona)

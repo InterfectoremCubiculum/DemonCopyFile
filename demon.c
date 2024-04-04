@@ -10,6 +10,7 @@
 #include <sys/mman.h>
 #include <utime.h>
 #include <signal.h>
+#include <syslog.h>
 
 #define SIGALRM 14
 #define SIGUSR1 10
@@ -30,7 +31,9 @@ char* sourceDir;
 char* destinationDir;
 int main(int argc, char* argv[])
 {
+    openlog("DomonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
     writeToLog("Demon Kopiujący Pliki został uruchomiony.\n");
+    syslog(10,"Demon Kopiujący Pliki został uruchomiony.\n");
     printf("Demon Kopiujący Pliki został uruchomiony.\n");
     // Ustawienie obsługi sygnałów
     signal(SIGALRM, AlarmHandler);
@@ -39,31 +42,40 @@ int main(int argc, char* argv[])
     // Pobranie pid
     pid_t pid = getpid();
     alarm(STANDARD_SLEEP_TIME);
+    closelog();
     // Pętla nieskończona, aby program mógł otrzymywać sygnały
     while (1) {
          pause();
     }
-
     return 0;
 }
 
 void AlarmHandler(int sig) {
     if (sig == SIGALRM) {
+    	openlog("DomonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
         // Wyślij sygnał SIGUSR1
         pid_t pid = getpid();
         kill(pid, SIGUSR1);
     	alarm(STANDARD_SLEEP_TIME);
-	writeToLog("Uspano Demona.");
+    	syslog(10,"Uspano Demona.\n");
+	writeToLog("Uspano Demona.\n");
+	closelog();
  }
 }
 
 void SignalHandler(int sig) {
     if (sig == SIGUSR1) {
         // Wykonaj synchronizację
-        writeToLog("Wysłano sygnał SIGUSR1.");
+        openlog("DomonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
+        writeToLog("Wysłano sygnał SIGUSR1.\n");
         writeToLog("Wybudzono Demona.");
+        syslog(10,"Wysłano sygnał SIGUSR1.");
+        syslog(10,"Wybudzono Demona.\n");
         SynchroniseDirectories(sourceDir, destinationDir, 0);
 	writeToLog("Zakończono synchronizację katalogów.");
+	syslog(10,"Zakończono synchronizację katalogów.\n");
+	closelog();
+	
     }
 }
 
@@ -188,6 +200,8 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
     char logMsg[500];
     snprintf(logMsg, sizeof(logMsg), "Skopiowano plik %s do %s\n", srcFile, dstFile);
     writeToLog(logMsg);
+    syslog(10,"%s",logMsg);
+    
 }
        }
         free(dstFile);
@@ -216,6 +230,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
             char logMsg[500];
             snprintf(logMsg, sizeof(logMsg), "Usunieto plik %s, poniewaz nie istnieje on już w %s\n", dstFile, srcFile);
             writeToLog(logMsg);
+            syslog(10,"%s",logMsg);
         }
         free(srcFile);
         free(dstFile);

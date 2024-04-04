@@ -52,15 +52,16 @@ void AlarmHandler(int sig) {
         // Wyślij sygnał SIGUSR1
         pid_t pid = getpid();
         kill(pid, SIGUSR1);
-    alarm(STANDARD_SLEEP_TIME);
-	writeToLog("Wysłano sygnał SIGUSR1.");
+    	alarm(STANDARD_SLEEP_TIME);
+	writeToLog("Uspano Demona.");
  }
 }
 
 void SignalHandler(int sig) {
     if (sig == SIGUSR1) {
         // Wykonaj synchronizację
-        writeToLog("Rozpoczęto synchronizację katalogów.");
+        writeToLog("Wysłano sygnał SIGUSR1.");
+        writeToLog("Wybudzono Demona.");
         SynchroniseDirectories(sourceDir, destinationDir, 0);
 	writeToLog("Zakończono synchronizację katalogów.");
     }
@@ -184,7 +185,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
     time.modtime = srcStats.st_mtime;
     utime(dstFile ,&time);
     // Dodanie informacji do logu
-    char logMsg[512];
+    char logMsg[500];
     snprintf(logMsg, sizeof(logMsg), "Skopiowano plik %s do %s\n", srcFile, dstFile);
     writeToLog(logMsg);
 }
@@ -211,7 +212,10 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
         
         if (access(srcFile, F_OK) == -1) {
             unlink(dstFile);
-            perror("unlink");
+            //perror("unlink");
+            char logMsg[500];
+            snprintf(logMsg, sizeof(logMsg), "Usunieto plik %s, poniewaz nie istnieje on już w %s\n", dstFile, srcFile);
+            writeToLog(logMsg);
         }
         free(srcFile);
         free(dstFile);
@@ -248,4 +252,3 @@ void WriteErrorAtributes(const char *programName) {
     printf("Błąd w parametrach: %s <src_dir> <dest_dir> [sleepTime] [-R] [sizeFile]\n", programName);
     exit(EXIT_FAILURE);
 }
-

@@ -20,13 +20,14 @@
 
 
 Przydatne komendy:
-- gcc -o demon demon1.c log.c      (kompilacja demona)
-- ./demon kat1 kat2 &              (uruchomienie demona z tle)
-- pkill demon                      (zakończenie pracy demona)
+- gcc -o demon demon1.c                                     (kompilacja demona)
+- ./demon /home/student/kat1 /home/student/kat2             (uruchomienie demona z tle)
+- pkill demon                                               (zakończenie pracy demona)
 
+Co więcej teraz demon osadzony będzie zawsze w katalogu głównym zatem i położenie naszych katalogów względem niego zostało zmienione, można to zauważyć w przydatne komendy powyżej 
 
 Zaglądanie do logów:
-- var/log/syslog na Ubuntu
+- cat var/log/syslog na Ubuntu
 - journalctl --since "10 minutes  ago" na Kali Linux, dziennik z ostatnich 10 minut
 
 

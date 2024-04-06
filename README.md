@@ -23,3 +23,10 @@ Przydatne komendy:
 - gcc -o demon demon1.c log.c      (kompilacja demona)
 - ./demon kat1 kat2 &              (uruchomienie demona z tle)
 - pkill demon                      (zakończenie pracy demona)
+
+
+Zaglądanie do logów:
+- var/log/syslog na Ubuntu
+- journalctl --since "10 minutes  ago" na Kali Linux, dziennik z ostatnich 10 minut
+
+

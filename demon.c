@@ -26,19 +26,17 @@ int IsDirectoryExists(const char *path);
 void WriteErrorAtributes(const char *programName);
 void SignalHandler(int sig);
 void AlarmHandler(int sig);
-extern void writeToLog(const char* format); 
 char* sourceDir;
 char* destinationDir;
 int main(int argc, char* argv[])
 {
-    openlog("DomonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
-    writeToLog("Demon Kopiujący Pliki został uruchomiony.\n");
-    syslog(10,"Demon Kopiujący Pliki został uruchomiony.\n");
-    printf("Demon Kopiujący Pliki został uruchomiony.\n");
+    openlog("DemonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
+    syslog(LOG_INFO,"Demon Kopiujący Pliki został uruchomiony.\n");
     // Ustawienie obsługi sygnałów
     signal(SIGALRM, AlarmHandler);
     signal(SIGUSR1, SignalHandler);
     Init(argc, argv);
+    daemon(0, 1);
     // Pobranie pid
     pid_t pid = getpid();
     alarm(STANDARD_SLEEP_TIME);
@@ -52,13 +50,12 @@ int main(int argc, char* argv[])
 
 void AlarmHandler(int sig) {
     if (sig == SIGALRM) {
-    	openlog("DomonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
         // Wyślij sygnał SIGUSR1
         pid_t pid = getpid();
         kill(pid, SIGUSR1);
-    	alarm(STANDARD_SLEEP_TIME);
-    	syslog(10,"Uspano Demona.\n");
-	writeToLog("Uspano Demona.\n");
+	alarm(STANDARD_SLEEP_TIME);
+	openlog("DemonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
+    	syslog(LOG_INFO,"Uspano Demona.\n");
 	closelog();
  }
 }
@@ -66,14 +63,11 @@ void AlarmHandler(int sig) {
 void SignalHandler(int sig) {
     if (sig == SIGUSR1) {
         // Wykonaj synchronizację
-        openlog("DomonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
-        writeToLog("Wysłano sygnał SIGUSR1.\n");
-        writeToLog("Wybudzono Demona.");
-        syslog(10,"Wysłano sygnał SIGUSR1.");
-        syslog(10,"Wybudzono Demona.\n");
+        openlog("DemonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
+        syslog(LOG_INFO,"Wysłano sygnał SIGUSR1.");
+        syslog(LOG_INFO,"Wybudzono Demona.\n");
         SynchroniseDirectories(sourceDir, destinationDir, 0);
-	writeToLog("Zakończono synchronizację katalogów.");
-	syslog(10,"Zakończono synchronizację katalogów.\n");
+	syslog(LOG_INFO,"Zakończono synchronizację katalogów.\n");
 	closelog();
 	
     }
@@ -199,8 +193,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
     // Dodanie informacji do logu
     char logMsg[500];
     snprintf(logMsg, sizeof(logMsg), "Skopiowano plik %s do %s\n", srcFile, dstFile);
-    writeToLog(logMsg);
-    syslog(10,"%s",logMsg);
+    syslog(LOG_INFO,"%s",logMsg);
     
 }
        }
@@ -229,8 +222,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir, i
             //perror("unlink");
             char logMsg[500];
             snprintf(logMsg, sizeof(logMsg), "Usunieto plik %s, poniewaz nie istnieje on już w %s\n", dstFile, srcFile);
-            writeToLog(logMsg);
-            syslog(10,"%s",logMsg);
+            syslog(LOG_INFO,"%s",logMsg);
         }
         free(srcFile);
         free(dstFile);

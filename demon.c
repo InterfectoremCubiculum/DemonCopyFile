@@ -14,7 +14,7 @@
 
 #define SIGALRM 14
 #define SIGUSR1 10
-#define SMALL_FILE_SIZE 1024*1024
+#define SMALL_FILE_SIZE (1024*1024)
 #define STANDARD_SLEEP_TIME 10//300 do testow na razie co 5 sekund zamiast 5 minut
 
 void Init(int argc, char* argv[]);
@@ -23,7 +23,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir);
 int ChangeTime(const char* input);
 int ChangeSize(const char* input);
 int IsDirectoryExists(const char *path);
-void WriteErrorAtributes(const char *programName);
+void WriteErrorAttributes(const char *programName);
 void SignalHandler(int sig);
 void AlarmHandler(int sig);
 
@@ -35,16 +35,14 @@ int sizeFile = 0; // Przetrzymuje rozmiar pliku ograniczający jaką metodę uż
 
 int main(int argc, char* argv[])
 {
-    openlog("DemonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
-    syslog(LOG_INFO,"Demon Kopiujący Pliki został uruchomiony.\n");
-    // Ustawienie obsługi sygnałów
+    openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
+    syslog(LOG_INFO, "Demon Kopiujący Pliki został uruchomiony.\n");
     signal(SIGALRM, AlarmHandler);
     signal(SIGUSR1, SignalHandler);
     Init(argc, argv);
     daemon(0, 1);
-    // Pobranie pid
     pid_t pid = getpid();
-    if(sleepTime ==0)
+    if(sleepTime == 0)
     {
         sleepTime = STANDARD_SLEEP_TIME;
     }
@@ -53,9 +51,7 @@ int main(int argc, char* argv[])
         sizeFile = SMALL_FILE_SIZE;
     }
     alarm(sleepTime);
-
     closelog();
-    // Pętla nieskończona, aby program mógł otrzymywać sygnały
     while (1) {
          pause();
     }
@@ -64,30 +60,25 @@ int main(int argc, char* argv[])
 
 void AlarmHandler(int sig) {
     if (sig == SIGALRM) {
-        // Wyślij sygnał SIGUSR1
         pid_t pid = getpid();
         kill(pid, SIGUSR1);
-	alarm(sleepTime);
-	openlog("DemonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
-    	syslog(LOG_INFO,"Uspano Demona.\n");
-	closelog();
- }
+        alarm(sleepTime);
+        openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
+        syslog(LOG_INFO, "Uśpiono Demona.\n");
+        closelog();
+    }
 }
 
 void SignalHandler(int sig) {
     if (sig == SIGUSR1) {
-        // Wykonaj synchronizację
-        openlog("DemonSynchronizujący", LOG_NDELAY, LOG_DAEMON);
-        syslog(LOG_INFO,"Wysłano sygnał SIGUSR1.");
-        syslog(LOG_INFO,"Wybudzono Demona.\n");
+        openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
+        syslog(LOG_INFO, "Wysłano sygnał SIGUSR1.\n");
+        syslog(LOG_INFO, "Wybudzono Demona.\n");
         SynchroniseDirectories(sourceDir, destinationDir);
-	syslog(LOG_INFO,"Zakończono synchronizację katalogów.\n");
-	closelog();
-	
+        syslog(LOG_INFO, "Zakończono synchronizację katalogów.\n");
+        closelog();
     }
 }
-
-
 // Inizcjalizacja demona podanymi parametrami
 void Init(int argc, char* argv[]) 
 {
@@ -113,7 +104,7 @@ void Init(int argc, char* argv[])
                 }
                 else 
                 {
-                    WriteErrorAtributes(argv[0]);
+                    WriteErrorAttributes(argv[0]);
                 }
                 break;
             case 5:
@@ -127,7 +118,7 @@ void Init(int argc, char* argv[])
                     {}
                     else
                     {
-                        WriteErrorAtributes(argv[0]);
+                        WriteErrorAttributes(argv[0]);
                     }
                 } 
                 else 
@@ -139,13 +130,13 @@ void Init(int argc, char* argv[])
                         {} 
                         else 
                         {
-                            WriteErrorAtributes(argv[0]);
+                            WriteErrorAttributes(argv[0]);
                         }
 
                     }
                     else 
                     {
-                        WriteErrorAtributes(argv[0]);
+                        WriteErrorAttributes(argv[0]);
                     }
                 }
                 break;
@@ -154,21 +145,20 @@ void Init(int argc, char* argv[])
                 {} 
                 else 
                 {
-                    WriteErrorAtributes(argv[0]);
+                    WriteErrorAttributes(argv[0]);
                 }
                 break;
             default:
-                WriteErrorAtributes(argv[0]);
+                WriteErrorAttributes(argv[0]);
                 break;
         }
     } 
     else 
     {
-        printf("Zła liczba parametrów: %s <src_dir> <dest_dir> [sleepTime] [-R]\n", argv[0]);
+        printf("Zła liczba parametrów: %s <src_dir> <dest_dir> [sleepTime] [-R] [sizeFile]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 }
-
 // Kopiuje plik między dwo folderami
 int CopyFile(const char* srcFile, const char* dstFile) 
 {
@@ -177,7 +167,7 @@ int CopyFile(const char* srcFile, const char* dstFile)
     struct stat stats;
     fstat(fileToRead, &stats);
     
-    if (stats.st_size <= sizeFile) // Metodą read/write, jeżeli plik jest mniejszy  niż parametr sizeFile
+    if (stats.st_size <= sizeFile) 
     {
         char buf[sizeFile];
         int bytesNumber = read(fileToRead, buf, sizeFile);
@@ -220,38 +210,43 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
         strcat(dstFile, "/");
         strcat(dstFile, checkAll->d_name);
 
-
-        struct stat srcStats, dstStats;
+        struct stat srcStats;
         stat(srcFile, &srcStats);
         
         // Uruchomienie opcji kopiowania rekurecyjnego
-        if (S_ISDIR(srcStats.st_mode) && recursion == 1) 
+        if (S_ISDIR(srcStats.st_mode)&&recursion==1) 
         {
-            // Implement recursion -R dla Michala
+            struct stat dstDirStats;
+            if (stat(dstFile, &dstDirStats) != 0) 
+            {
+                mkdir(dstFile, srcStats.st_mode);
+            }
+            SynchroniseDirectories(srcFile, dstFile);
         } 
         else if (S_ISREG(srcStats.st_mode)) 
         {
+            struct stat dstStats;
             if (stat(dstFile, &dstStats) == -1 || srcStats.st_mtime > dstStats.st_mtime) 
             {
-                
+            
             // Wykonuj tylko wtedy, gdy plik źródłowy jest nowszy niż plik docelowy
-            int copyMethod = CopyFile(srcFile, dstFile); 
-
-            struct utimbuf time;
-            time.modtime = srcStats.st_mtime; 
-            utime(dstFile ,&time); // Zmiana czasu modyfikacji
-
-            // Dodanie informacji do logu
-            char logMsg[500];
-            if(copyMethod == 1) // Metodą read/write dla mniejszych plików
-            {
-                snprintf(logMsg, sizeof(logMsg), "Skopiowano plik %s do %s metodą read/write\n", srcFile, dstFile);
-            }
-            else if(copyMethod == 2) // Metodą mmap/write dla większych plików
-            {
-                snprintf(logMsg, sizeof(logMsg), "Skopiowano plik %s do %s metodą mmap/write \n", srcFile, dstFile);
-            }
-            syslog(LOG_INFO,"%s",logMsg);
+                int copyMethod = CopyFile(srcFile, dstFile); 
+                
+                struct utimbuf time;
+                time.modtime = srcStats.st_mtime; 
+                utime(dstFile ,&time); // Zmiana czasu modyfikacji
+                
+                // Dodanie informacji do logu
+                char logMsg[500];
+                if(copyMethod == 1) // Metodą read/write dla mniejszych plików
+                {
+                    snprintf(logMsg, sizeof(logMsg), "Skopiowano plik %s do %s metodą read/write\n", srcFile, dstFile);
+                }
+                else if(copyMethod == 2) 
+                {
+                    snprintf(logMsg, sizeof(logMsg), "Skopiowano plik %s do %s metodą mmap/write \n", srcFile, dstFile);
+                }
+                syslog(LOG_INFO,"%s",logMsg);
             }
         }
         free(dstFile);
@@ -260,11 +255,12 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
     closedir(srcDIR);
     
     DIR *dstDIR = opendir(destinationDir);
-    while ((checkAll = readdir(dstDIR)) != NULL) {
-        if (strcmp(checkAll->d_name, ".") == 0 || strcmp(checkAll->d_name, "..") == 0) {
+    while ((checkAll = readdir(dstDIR)) != NULL) 
+    {
+        if (strcmp(checkAll->d_name, ".") == 0 || strcmp(checkAll->d_name, "..") == 0) 
+        {
             continue;
         }
- 
         char* srcFile = malloc((strlen(sourceDir)+strlen(checkAll->d_name)+2)*sizeof(char));
         strcpy(srcFile, sourceDir);
         strcat(srcFile, "/");
@@ -275,12 +271,13 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
         strcat(dstFile, "/");
         strcat(dstFile, checkAll->d_name);
         
-
+        
         // Usuwa plik
-        if (access(srcFile, F_OK) == -1) {
+        if (access(srcFile, F_OK) == -1) 
+        {
             unlink(dstFile);
             char logMsg[500];
-            snprintf(logMsg, sizeof(logMsg), "Usunieto plik %s, poniewaz nie istnieje on już w %s\n", dstFile, srcFile);
+            snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w %s\n", dstFile, srcFile);
             syslog(LOG_INFO,"%s",logMsg);
         }
         free(srcFile);
@@ -288,6 +285,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
     }
     closedir(dstDIR);
 }
+
 
 // Sprawdza czy podana wartość jest liczbą i zapisuje jako czas między pobudzeniem demona
 int ChangeTime(const char* input) 
@@ -303,6 +301,7 @@ int ChangeTime(const char* input)
     return 1;
 }
 
+
 // Sprawdza czy podana wartość jest liczbą i zapisuje jako nową granice dla metod kopiujących pliki
 int ChangeSize(const char* input) 
 {
@@ -317,10 +316,13 @@ int ChangeSize(const char* input)
     return 1;
 }
 
+
 // Sprawdza czy istnieją takie katalogii
-int IsDirectoryExists(const char *path) {
+int IsDirectoryExists(const char *path) 
+{
     struct stat s;
-    if (stat(path, &s) == -1 || !S_ISDIR(s.st_mode)) {
+    if (stat(path, &s) == -1 || !S_ISDIR(s.st_mode)) 
+    {
         return 1;
     }
     return 0;
@@ -328,7 +330,7 @@ int IsDirectoryExists(const char *path) {
 
 
 // Zamyka demona oraz informuje o błędach w podanych parametrach
-void WriteErrorAtributes(const char *programName) 
+void WriteErrorAttributes(const char *programName) 
 {
     printf("Błąd w parametrach: %s <src_dir> <dest_dir> [sleepTime] [-R] [sizeFile]\n", programName);
     char logMsg[500];
@@ -336,3 +338,4 @@ void WriteErrorAtributes(const char *programName)
     syslog(LOG_INFO,"%s",logMsg);
     exit(EXIT_FAILURE);
 }
+

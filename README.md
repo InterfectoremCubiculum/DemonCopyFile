@@ -13,8 +13,8 @@
 - [x] praca w tle (zamiast pracy przy uruchomionym procesie)
      
 -  Michał K.
-- [ ]  Zapisywanie i obsługa katalogów (zaglądanie rekurencyjne)
- 
+- [x]  Zapisywanie i obsługa katalogów (zaglądanie rekurencyjne)
+- [ ]  Pomoc przy dokumentacji
 -  Norbert K.
 - [ ] Dokumentacja
 

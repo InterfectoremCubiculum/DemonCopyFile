@@ -159,7 +159,7 @@ void Init(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 }
-// Kopiuje plik między dwo folderami
+// Kopiuje plik między dwoma folderami
 int CopyFile(const char* srcFile, const char* dstFile) 
 {
     int fileToRead = open(srcFile, O_RDONLY);

@@ -35,12 +35,15 @@ int sizeFile = 0; // Przetrzymuje rozmiar pliku ograniczający jaką metodę uż
 
 int main(int argc, char* argv[])
 {
+    
     openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
     syslog(LOG_INFO, "Demon Kopiujący Pliki został uruchomiony.\n");
+    // Ustawienie obsługi sygnałów
     signal(SIGALRM, AlarmHandler);
     signal(SIGUSR1, SignalHandler);
     Init(argc, argv);
     daemon(0, 1);
+    // Pobranie pid
     pid_t pid = getpid();
     if(sleepTime == 0)
     {
@@ -52,6 +55,7 @@ int main(int argc, char* argv[])
     }
     alarm(sleepTime);
     closelog();
+    // Pętla nieskończona, aby program mógł otrzymywać sygnały
     while (1) {
          pause();
     }
@@ -59,10 +63,12 @@ int main(int argc, char* argv[])
 }
 
 void AlarmHandler(int sig) {
+    // Wyślij sygnał SIGUSR1
     if (sig == SIGALRM) {
         pid_t pid = getpid();
         kill(pid, SIGUSR1);
         alarm(sleepTime);
+        // Wykonaj synchronizację
         openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
         syslog(LOG_INFO, "Uśpiono Demona.\n");
         closelog();
@@ -71,6 +77,7 @@ void AlarmHandler(int sig) {
 
 void SignalHandler(int sig) {
     if (sig == SIGUSR1) {
+        // Wykonaj synchronizację
         openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
         syslog(LOG_INFO, "Wysłano sygnał SIGUSR1.\n");
         syslog(LOG_INFO, "Wybudzono Demona.\n");
@@ -95,6 +102,8 @@ void Init(int argc, char* argv[])
 
         switch (argc) 
         {
+            case 3:
+                break;
             case 4:
                 if (ChangeTime(argv[3])) 
                 {} 
@@ -253,7 +262,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
         free(srcFile);
     }
     closedir(srcDIR);
-    
+        
     DIR *dstDIR = opendir(destinationDir);
     while ((checkAll = readdir(dstDIR)) != NULL) 
     {
@@ -270,11 +279,10 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
         strcpy(dstFile, destinationDir);
         strcat(dstFile, "/");
         strcat(dstFile, checkAll->d_name);
-        
-        
+          
         // Usuwa plik
         if (access(srcFile, F_OK) == -1) 
-        {
+            {
             unlink(dstFile);
             char logMsg[500];
             snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w %s\n", dstFile, srcFile);
@@ -338,4 +346,3 @@ void WriteErrorAttributes(const char *programName)
     syslog(LOG_INFO,"%s",logMsg);
     exit(EXIT_FAILURE);
 }
-

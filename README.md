@@ -4,6 +4,7 @@
 - [x] kopiowanie plików(narazie bez rekurencji i data nie jest datą modyfikacji) 
 - [x] sprawdzanie tego czy podany parametr to katalog
 - [x] usuwanie plików
+- [x] Usuwanie rekurencyjne
 
 - Mateusz I.
 - [x] realizacja sleepa 
@@ -13,8 +14,7 @@
 - [x] praca w tle (zamiast pracy przy uruchomionym procesie)
      
 -  Michał K.
-- [x]  Zapisywanie i obsługa katalogów (zaglądanie rekurencyjne)
-- [ ]  Pomoc przy dokumentacji
+- [x]  Otwieranie i Tworzenie Katalogów Rekurencyjnie (Przeglądanie zawartości katalogów)
 -  Norbert K.
 - [ ] Dokumentacja
 

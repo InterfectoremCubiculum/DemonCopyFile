@@ -11,7 +11,7 @@
 - [x] obsługa sygnałów (wybudzenie, uruchomienie i uśpienie) 
 - [x] logowanie informacji o demononie
 - [x] Podział na oddzielne pliki wykonawcze
-- [x] praca w tle (zamiast pracy przy uruchomionym procesie)
+- [x] praca w tle (zamiast pracy przy uruchomionym procesie. Innymi słowy zrobienie faktycznego "Demona" z naszego programu)
      
 -  Michał K.
 - [x]  Otwieranie i Tworzenie Katalogów Rekurencyjnie (Przeglądanie zawartości katalogów)

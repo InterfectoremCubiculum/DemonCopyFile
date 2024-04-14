@@ -369,47 +369,38 @@ void WriteErrorAttributes(const char *programName)
 void RemoveDirectoryRecursively(const char *path)
 {
     DIR *dir = opendir(path);
-    int path_len = strlen(path);
-
     if (dir) 
     {
         struct dirent *checkAll;
         //Przejrzyj wszystkie pliki i katalogi w danym katalogu
         while ((checkAll=readdir(dir))) 
         {
-            char *buf;
-            int len;
-
             if (!strcmp(checkAll->d_name, ".") || !strcmp(checkAll->d_name, "..")) 
             {
                 continue;
             }
-
-            len = path_len + strlen(checkAll->d_name) + 2; 
-            buf = malloc(len);
-
-            if (buf) 
+            char* dst = malloc((strlen(path) + strlen(checkAll->d_name) + 2) * sizeof(char));
+            strcpy(dst, path);
+            strcat(dst, "/");
+            strcat(dst, checkAll->d_name);
+            struct stat statbuf;
+            if (!stat(dst, &statbuf)) 
             {
-                struct stat statbuf;
-                snprintf(buf, len, "%s/%s", path, checkAll->d_name);
-                if (!stat(buf, &statbuf)) 
+                // Jeżeli natrafiono na katalog, wywołaj funkcje
+                if (S_ISDIR(statbuf.st_mode)) 
                 {
-                    // Jeżeli natrafiono na katalog, wywołaj funkcje
-                    if (S_ISDIR(statbuf.st_mode)) 
-                    {
-                        RemoveDirectoryRecursively(buf);
-                    }
-                    else // Jeżeli jest to plik , to go usuń
-                    {
-                        unlink(buf);
-                        char logMsg[500];
-                        snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w katalogu domyślnym \n", buf);
-                        syslog(LOG_INFO,"%s",logMsg);
-
-                    }
+                    RemoveDirectoryRecursively(dst);
                 }
-                free(buf);
+                else // Jeżeli jest to plik , to go usuń
+                {
+                    unlink(dst);
+                    char logMsg[500];
+                    snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w katalogu domyślnym \n", dst);
+                    syslog(LOG_INFO,"%s",logMsg);
+
+                }
             }
+            free(dst);
         }
         closedir(dir);
     }

@@ -26,7 +26,7 @@ int IsDirectoryExists(const char *path);
 void WriteErrorAttributes(const char *programName);
 void SignalHandler(int sig);
 void AlarmHandler(int sig);
-
+void RemoveDirectoryRecursively(const char *path);
 char* sourceDir;
 char* destinationDir;
 int sleepTime = 0; // określa czas spania demona
@@ -229,6 +229,12 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
             if (stat(dstFile, &dstDirStats) != 0) 
             {
                 mkdir(dstFile, srcStats.st_mode);
+                char logMsg[500];
+                snprintf(logMsg, sizeof(logMsg), "Skopiowano folder %s do %s\n", srcFile, dstFile);
+                syslog(LOG_INFO,"%s",logMsg);
+                struct utimbuf time;
+                time.modtime = srcStats.st_mtime; 
+                utime(dstFile ,&time); // Zmiana czasu modyfikacji
             }
             SynchroniseDirectories(srcFile, dstFile);
         } 
@@ -279,14 +285,26 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
         strcpy(dstFile, destinationDir);
         strcat(dstFile, "/");
         strcat(dstFile, checkAll->d_name);
-          
-        // Usuwa plik
+        
+        // Usuwa plik lub katalog
         if (access(srcFile, F_OK) == -1) 
+        {
+            struct stat statbuf;
+            if (!stat(dstFile, &statbuf)) 
             {
-            unlink(dstFile);
-            char logMsg[500];
-            snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w %s\n", dstFile, srcFile);
-            syslog(LOG_INFO,"%s",logMsg);
+                if (S_ISDIR(statbuf.st_mode)) 
+                {
+                    if(recursion == 1)
+                        RemoveDirectoryRecursively(dstFile);
+                }
+                else
+                {
+                    unlink(dstFile);
+                    char logMsg[500];
+                    snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w %s\n", dstFile, srcFile);
+                    syslog(LOG_INFO,"%s",logMsg);
+                }
+            }
         }
         free(srcFile);
         free(dstFile);
@@ -345,4 +363,59 @@ void WriteErrorAttributes(const char *programName)
     snprintf(logMsg, sizeof(logMsg), "Demon został zamknięty z powodu błędnych parametrów");
     syslog(LOG_INFO,"%s",logMsg);
     exit(EXIT_FAILURE);
+}
+
+// Jest odpowiedzialny za usuwanie plików rekurencyjnie
+void RemoveDirectoryRecursively(const char *path)
+{
+    DIR *dir = opendir(path);
+    int path_len = strlen(path);
+
+    if (dir) 
+    {
+        struct dirent *checkAll;
+        //Przejrzyj wszystkie pliki i katalogi w danym katalogu
+        while ((checkAll=readdir(dir))) 
+        {
+            char *buf;
+            int len;
+
+            if (!strcmp(checkAll->d_name, ".") || !strcmp(checkAll->d_name, "..")) 
+            {
+                continue;
+            }
+
+            len = path_len + strlen(checkAll->d_name) + 2; 
+            buf = malloc(len);
+
+            if (buf) 
+            {
+                struct stat statbuf;
+                snprintf(buf, len, "%s/%s", path, checkAll->d_name);
+                if (!stat(buf, &statbuf)) 
+                {
+                    // Jeżeli natrafiono na katalog, wywołaj funkcje
+                    if (S_ISDIR(statbuf.st_mode)) 
+                    {
+                        RemoveDirectoryRecursively(buf);
+                    }
+                    else // Jeżeli jest to plik , to go usuń
+                    {
+                        unlink(buf);
+                        char logMsg[500];
+                        snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w katalogu domyślnym \n", buf);
+                        syslog(LOG_INFO,"%s",logMsg);
+
+                    }
+                }
+                free(buf);
+            }
+        }
+        closedir(dir);
+    }
+    // Usuwa katalog
+    rmdir(path);
+    char logMsg[500];
+    snprintf(logMsg, sizeof(logMsg), "Usunięto katalog %s, ponieważ nie istnieje on już w katalogu domyślnym\n", path);
+    syslog(LOG_INFO,"%s",logMsg);
 }

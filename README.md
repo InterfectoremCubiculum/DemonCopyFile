@@ -32,6 +32,7 @@ Zaglądanie do logów:
 
 przykładowe wywołania Demona
 
+- ./demon /home/student/katalog_test /home/student/katalog_test2
 - ./demon /home/student/katalog_test /home/student/katalog_test2 50 -R 300
 - ./demon /home/student/katalog_test /home/student/katalog_test2 -R
 - ./demon /home/student/katalog_test /home/student/katalog_test2 -R 300

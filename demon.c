@@ -26,7 +26,7 @@ int IsDirectoryExists(const char *path);
 void WriteErrorAttributes(const char *programName);
 void SignalHandler(int sig);
 void AlarmHandler(int sig);
-void RemoveDirectoryRecursively(const char *path);
+void RemoveDirectoryRecursively(const char *path, const char *srcFile );
 char* sourceDir;
 char* destinationDir;
 int sleepTime = 0; // określa czas spania demona
@@ -295,7 +295,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
                 if (S_ISDIR(statbuf.st_mode)) 
                 {
                     if(recursion == 1)
-                        RemoveDirectoryRecursively(dstFile);
+                        RemoveDirectoryRecursively(dstFile, srcFile);
                 }
                 else
                 {
@@ -366,7 +366,7 @@ void WriteErrorAttributes(const char *programName)
 }
 
 // Jest odpowiedzialny za usuwanie plików rekurencyjnie
-void RemoveDirectoryRecursively(const char *path)
+void RemoveDirectoryRecursively(const char *path, const char *srcFile)
 {
     DIR *dir = opendir(path);
     if (dir) 
@@ -380,33 +380,38 @@ void RemoveDirectoryRecursively(const char *path)
                 continue;
             }
             char* dst = malloc((strlen(path) + strlen(checkAll->d_name) + 2) * sizeof(char));
+            char* src = malloc((strlen(srcFile) + strlen(checkAll->d_name) + 2) * sizeof(char));
             strcpy(dst, path);
             strcat(dst, "/");
             strcat(dst, checkAll->d_name);
+            strcpy(src, srcFile);
+            strcat(src, "/");
+            strcat(src, checkAll->d_name);
             struct stat statbuf;
             if (!stat(dst, &statbuf)) 
             {
                 // Jeżeli natrafiono na katalog, wywołaj funkcje
                 if (S_ISDIR(statbuf.st_mode)) 
                 {
-                    RemoveDirectoryRecursively(dst);
+                    RemoveDirectoryRecursively(dst, src);
                 }
                 else // Jeżeli jest to plik , to go usuń
                 {
                     unlink(dst);
                     char logMsg[500];
-                    snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w katalogu domyślnym \n", dst);
+                    snprintf(logMsg, sizeof(logMsg), "Usunięto plik %s, ponieważ nie istnieje on już w %s\n", dst, src);
                     syslog(LOG_INFO,"%s",logMsg);
 
                 }
             }
             free(dst);
+            free(src);
         }
         closedir(dir);
     }
     // Usuwa katalog
     rmdir(path);
     char logMsg[500];
-    snprintf(logMsg, sizeof(logMsg), "Usunięto katalog %s, ponieważ nie istnieje on już w katalogu domyślnym\n", path);
+    snprintf(logMsg, sizeof(logMsg), "Usunięto katalog %s, ponieważ nie istnieje on już w katalogu  %s\n", path, srcFile);
     syslog(LOG_INFO,"%s",logMsg);
 }

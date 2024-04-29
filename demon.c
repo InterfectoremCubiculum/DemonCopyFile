@@ -15,7 +15,7 @@
 #define SIGALRM 14
 #define SIGUSR1 10
 #define SMALL_FILE_SIZE (1024*1024)
-#define STANDARD_SLEEP_TIME 10//300 do testow na razie co 5 sekund zamiast 5 minut
+#define STANDARD_SLEEP_TIME 10 //300 do testow na razie co 10 sekund zamiast 5 minut
 
 void Init(int argc, char* argv[]);
 int CopyFile(const char* srcFile, const char* dstFile);
@@ -35,14 +35,13 @@ int sizeFile = 0; // Przetrzymuje rozmiar pliku ograniczający jaką metodę uż
 
 int main(int argc, char* argv[])
 {
-    
     openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
-    syslog(LOG_INFO, "Demon Kopiujący Pliki został uruchomiony.\n");
     // Ustawienie obsługi sygnałów
     signal(SIGALRM, AlarmHandler);
     signal(SIGUSR1, SignalHandler);
     Init(argc, argv);
     daemon(0, 1);
+    syslog(LOG_INFO, "Demon Kopiujący Pliki został uruchomiony.\n");
     // Pobranie pid
     pid_t pid = getpid();
     if(sleepTime == 0)
@@ -70,7 +69,7 @@ void AlarmHandler(int sig) {
         alarm(sleepTime);
         // Wykonaj synchronizację
         openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
-        syslog(LOG_INFO, "Uśpiono Demona.\n");
+        syslog(LOG_INFO, "Uspano Demona.\n");
         closelog();
     }
 }
@@ -200,6 +199,7 @@ int CopyFile(const char* srcFile, const char* dstFile)
 
 void SynchroniseDirectories(const char* sourceDir, const char* destinationDir) 
 {
+    openlog("DemonSynchronizujący", LOG_PID, LOG_DAEMON);
     DIR *srcDIR = opendir(sourceDir);
     struct dirent *checkAll;
     while ((checkAll = readdir(srcDIR)) != NULL) 
@@ -221,7 +221,6 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
 
         struct stat srcStats;
         stat(srcFile, &srcStats);
-        
         // Uruchomienie opcji kopiowania rekurecyjnego
         if (S_ISDIR(srcStats.st_mode)&&recursion==1) 
         {
@@ -310,6 +309,7 @@ void SynchroniseDirectories(const char* sourceDir, const char* destinationDir)
         free(dstFile);
     }
     closedir(dstDIR);
+    closelog();
 }
 
 

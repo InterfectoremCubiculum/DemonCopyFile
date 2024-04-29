@@ -20,7 +20,7 @@
 
 
 Przydatne komendy:
-- gcc -o demon demon1.c                                     (kompilacja demona)
+- gcc -o demon main.c demon.c                               (kompilacja demona)
 - ./demon /home/student/kat1 /home/student/kat2             (uruchomienie demona z tle)
 - pkill demon                                               (zakończenie pracy demona)
 

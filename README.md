@@ -1,7 +1,7 @@
 **Podział pracy:**
 - Eryk Ś:
 - [x] sprawdza parametry 
-- [x] kopiowanie plików(narazie bez rekurencji i data nie jest datą modyfikacji) 
+- [x] kopiowanie plików
 - [x] sprawdzanie tego czy podany parametr to katalog
 - [x] usuwanie plików
 - [x] Usuwanie rekurencyjne
@@ -16,7 +16,7 @@
 -  Michał K.
 - [x]  Otwieranie i Tworzenie Katalogów Rekurencyjnie (Przeglądanie zawartości katalogów)
 -  Norbert K.
-- [ ] Dokumentacja
+- [x] Dokumentacja
 
 
 Przydatne komendy:
